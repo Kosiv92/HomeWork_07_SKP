@@ -6,53 +6,58 @@ using System.Threading.Tasks;
 
 namespace HomeWork_07_SKP
 {
+    /// <summary>
+    /// Структура описывающая сущность "заметка"
+    /// </summary>
     struct Note
     {
        
         /// <summary>
         /// Номер заметки
         /// </summary>
-        public int NumberOfNote { get; private set; }
+        public int NoteNumber { get; private set; }
 
         /// <summary>
         /// Дата заметки
         /// </summary>
-        public DateTime DateOfNote { get; private set; }
+        public DateTime NoteDate { get; private set; }
 
         /// <summary>
         /// Автор заметки
         /// </summary>
-        public string AuthorOfNote { get; set; }
+        public string NoteAuthor { get; set; }
 
         /// <summary>
         /// Содержимое заметки
         /// </summary>
-        public string ContentOfNote { get; set; }
+        public string NoteContent { get; set; }
         
         /// <summary>
         /// Категория заметки
         /// </summary>
-        public string TypeOfNote { get; set; }
+        public string NoteType { get; set; }
 
         /// <summary>
-        /// Конструктор для структуры
+        /// Конструктор для структуры Заметка
         /// </summary>
         /// <param name="numberOfNote">Номер заметки</param>
         /// <param name="dateOfNote">Дата заметки</param>
         /// <param name="authorOfNote">Автор заметки</param>
         /// <param name="contentOfNote">Содержимое заметки</param>
         /// <param name="typeOfNote">Категория заметки</param>
-        public Note(int numberOfNote, DateTime dateOfNote, string authorOfNote, string contentOfNote, string typeOfNote)
+        public Note(int noteNumber, DateTime noteDate, string noteAuthor, string noteContent, string noteType)
         {
-            NumberOfNote = numberOfNote;
+            NoteAuthor = noteAuthor;
+            
+            NoteNumber = noteNumber;
 
-            DateOfNote = dateOfNote;
+            NoteDate = noteDate;
 
-            AuthorOfNote = authorOfNote;
+            NoteAuthor = noteAuthor;
 
-            ContentOfNote = contentOfNote;
+            NoteContent = noteContent;
 
-            TypeOfNote = typeOfNote;
+            NoteType = noteType;
         }
 
     }
