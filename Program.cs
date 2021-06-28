@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Text;
 
 namespace HomeWork_07_SKP
 {
@@ -8,9 +10,10 @@ namespace HomeWork_07_SKP
     {
         static void Main(string[] args)
         {
-            var diares = new List<Diary>(); //объявление списка объектов (дневников)
+            var notes = new List<Note>(); //объявление списка объектов (дневников)
             
-            string pathForDiary = GetPathToDiary();
+            string pathForDiary = GetDiaryPath(notes); //получение пути к файлу-ежедневнику от пользователя
+            
             ShowMenu(notes, pathForDiary);    //Переход в меню
 
         }
@@ -24,34 +27,62 @@ namespace HomeWork_07_SKP
         {
             int count = 0; //счетчик количества заметок
 
-            using (StreamReader readFromFile = new StreamReader(pathForDiary))
+            string[] lines = File.ReadAllLines(pathForDiary);
+
+            if (lines.Length != 0)
             {
-
-                while (!readFromFile.EndOfStream)
+                using (StreamReader readFromFile = new StreamReader(pathForDiary))
                 {
-                    string[] rowFromFile = readFromFile.ReadLine().Split('\t');
 
-                    count++;
+                    while (!readFromFile.EndOfStream)
+                    {
+                        string[] rowFromFile = readFromFile.ReadLine().Split(';');
 
-                    DateTime parsedDate = DateTime.Parse(rowFromFile[1]);
+                        count++;
+                        
+                        //var allowedFormatsDate = new[] { "MM-dd-yyyy", "dd-MM-yyyy hh-mm-ss" };
 
-                    notes.Add(new Note(count, parsedDate, rowFromFile[2], rowFromFile[3], rowFromFile[4]));
+                        DateTime parsedDate = DateTime.ParseExact(rowFromFile[1], "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None);
+
+                        notes.Add(new Note(count, parsedDate, rowFromFile[2], rowFromFile[3], rowFromFile[4]));
+                    }
                 }
             }
+        }
+
+        /// <summary>
+        /// Метод загрузки структуры в файл
+        /// </summary>
+        /// <param name="notes">Список объектов структуры</param>
+        /// <param name="pathForDiary">Путь к файлу для записи</param>
+        static void UploadToFile(List<Note> notes, string pathForDiary)
+        {
+            
+            using (StreamWriter writeToFile = new StreamWriter(pathForDiary, false, Encoding.UTF32))
+            {
+                FileInfo infoDiary = new FileInfo(pathForDiary);
+                if(!infoDiary.Exists) File.Create(pathForDiary);
+                    foreach (var note in notes)
+                {
+                    //string tempStringForWrite = String.Format("{0},{1},{2},{3},{4}",
+                    //    note.Number, note.Date, note.Author, note.Content, note.Type);
+
+                    writeToFile.Write(note.Number + ";"  + note.Date + ";" + note.Author + ";" + note.Content + ";" + note.Type);
+                    writeToFile.WriteLine();
+                }
                 
             }
+        }
         
-
-
         /// <summary>
         /// Указание пути к файлу со списокм ежедневников
         /// </summary>
         /// <returns></returns>
-        static string GetDiaryPath()
+        static string GetDiaryPath(List<Note> notes)
         {
             Console.WriteLine(
-                "Перед началом работы укажите директорию, где находится или где необходимо создать файл со списком ежедневников\nФайл должен называться - \"DiaryList.csv\"\n" +
-                "Вам необходимо вписать путь до директории с файлом в формате - \"D:\\MyFiles\" В случае если файл отсутствует по указанному пути он он будет создан\n");
+                "Перед началом работы укажите директорию, где находится или где необходимо создать файл с ежедневником\nФайл должен называться - \"Diary.csv\"\n" +
+                "Вам необходимо вписать путь до директории с файлом в формате - \"D:\\MyFiles\" В случае если файл отсутствует по указанному пути он будет создан\n");
             string diaryPath;
 
             while (true)
@@ -60,19 +91,20 @@ namespace HomeWork_07_SKP
                 try
                 {
                     DirectoryInfo infoAboutDirectoryOfDiary = new DirectoryInfo(diaryPath);   //проверка на пустую строку
-                    diaryPath += "\\DiaryList.csv";
+                    diaryPath += "\\Diary.csv";
                     FileInfo infoAboutDiary = new FileInfo(diaryPath);
                     if (infoAboutDiary.Exists)
                     {
                         Console.WriteLine(
                             $"Обнаружен существующий файл-ежедневник для хранения заметок - {diaryPath}");
+                        LoadFromFile(notes, diaryPath);
                         Console.ReadKey();
                         return diaryPath;
                     }
                     else
                     {
-                        File.Create(diaryPath);
-                        Console.WriteLine($"Создан новый файл-ежедневник для хранения заметок - {diaryPath}");
+                        //File.Create(diaryPath);
+                        Console.WriteLine($"Файл не обнаружен. Будет создан новый файл-ежедневник для хранения заметок - {diaryPath}");
                         Console.ReadKey();
                         return diaryPath;
                     }
@@ -96,12 +128,13 @@ namespace HomeWork_07_SKP
                 switch (buttonPressed.KeyChar)
                 {
                     case '1':
-                        Diary.AddNote(notes);
+                        notes.Add(Note.Add(notes.Count));
                         break;
                     case '2':
                         ShowNotes(notes);
                         break;
                     case '3':
+                        UploadToFile(notes, pathForDiary);
                         Environment.Exit(0);
                         break;
                 }
@@ -116,45 +149,16 @@ namespace HomeWork_07_SKP
             Console.WriteLine($"{titles[0],5} {titles[1],12} {titles[2],13} {titles[3],-40} {titles[4],17}");
             foreach (var note in notes)
             {
-                Console.Write($"{note.NoteNumber,5} ");
-                Console.Write($"{note.NoteDate.ToString("d"),12} ");
-                Console.Write($"{note.NoteAuthor,13} ");
-                Console.Write($"{note.NoteContent,-40} ");
-                Console.Write($"{note.NoteType,17} ");
+                Console.Write($"{note.Number,5} ");
+                Console.Write($"{note.Date.ToString("d"),12} ");
+                Console.Write($"{note.Author,13} ");
+                Console.Write($"{note.Content,-40} ");
+                Console.Write($"{note.Type,17} ");
                 Console.WriteLine();
             }
             Console.ReadKey();
         }
 
-        /// <summary>
-        /// Добавление новой заметки
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        //static void AddNote(List<Note> notes)
-        //{
-        //    int numberOfNote = notes.Count + 1;
-
-        //    DateTime dateOfNote = DateTime.Today;
-            
-        //    Console.Write("\nВведите автора заметки:");
-            
-        //    string authorOfNote = Console.ReadLine();
-
-        //    Console.Write("\nВведите содержимое заметки:");
-
-        //    string contentOfNote = Console.ReadLine();
-
-        //    Console.Write("\nВведите категорию заметки заметки:");
-
-        //    string typeOfNote = Console.ReadLine();
-
-        //    Note currentNote = new Note(numberOfNote, dateOfNote, authorOfNote, contentOfNote, typeOfNote);
-
-        //    notes.Add(currentNote);
-
-        //    Console.WriteLine("\nЗаметка добавлена");
-        //    Console.ReadKey();
-        //}
+        
     }
 }
