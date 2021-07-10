@@ -65,8 +65,7 @@ namespace HomeWork_07_SKP
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        
-        public static Note Add(int count)
+        public Note Add(int count)
         {
             
             int numberOfNote = count + 1;
