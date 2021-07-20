@@ -8,6 +8,7 @@ namespace HomeWork_07_SKP
 {
     class Program
     {
+        
         static void Main(string[] args)
         {
             Console.WriteLine(
@@ -15,15 +16,23 @@ namespace HomeWork_07_SKP
                 "Вам необходимо вписать путь до директории с файлом в формате - \"D:\\MyFiles\" В случае если файл отсутствует по указанному пути он будет создан\n");
             string diaryPath = Console.ReadLine();
 
-            var myDiary = new Diary(diaryPath);
+            Diary myDiary = new Diary();
 
-            myDiary.LoadNotes();    //загрузка замеотк из файла
+            myDiary.SetPath(diaryPath);
 
-            var CurrentNote = new Note();
+            while (true)
+            {
+                ShowMenu(myDiary);
 
-            CurrentNote.Add(myDiary.CountNotes);
+            }
+
+            //myDiary.LoadNotes();    //загрузка заметок из файла
+
+            //var CurrentNote = new Note();
+
+            //CurrentNote.Add(myDiary.CountNotes);
             
-            myDiary.AddNote(CurrentNote);
+            //myDiary.AddNote(CurrentNote);
 
 
             //var notes = new List<Note>(); //объявление списка объектов (дневников)
@@ -32,6 +41,42 @@ namespace HomeWork_07_SKP
 
             //ShowMenu(notes, pathForDiary);    //Переход в меню
 
+        }
+
+        /// <summary>
+        /// Ds
+        /// </summary>
+        /// <param name="notes"></param>
+        static void ShowMenu(Diary myDiary)
+        {
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("Выберите необходимое действие:\n1 - Добавить заметку\n2 - Вывести все заметки на экран\n3 - Закрыть приложение");
+                ConsoleKeyInfo buttonPressed; //нажимаемая пользователем клавиша
+                buttonPressed = Console.ReadKey();
+                switch (buttonPressed.KeyChar)
+                {
+                    case '1':
+                        var CurrentNote = new Note();
+
+                        CurrentNote.Add(myDiary.CountNotes);
+
+                        myDiary.AddNote(CurrentNote);
+
+                        break;
+                    case '2':
+                        ShowNotes(notes);
+                        break;
+                    case '3':
+
+                        break;
+                    case '4':
+                        UploadToFile(notes, pathForDiary);
+                        Environment.Exit(0);
+                        break;
+                }
+            }
         }
 
         /// <summary>
@@ -55,7 +100,7 @@ namespace HomeWork_07_SKP
         //                string[] rowFromFile = readFromFile.ReadLine().Split(';');
 
         //                count++;
-                        
+
         //                DateTime parsedDate = DateTime.Parse(rowFromFile[1]);
 
         //                notes.Add(new Note(count, parsedDate, rowFromFile[2], rowFromFile[3], rowFromFile[4]));
@@ -71,21 +116,21 @@ namespace HomeWork_07_SKP
         /// <param name="pathForDiary">Путь к файлу для записи</param>
         //static void UploadToFile(List<Note> notes, string pathForDiary)
         //{
-            
+
         //    using (StreamWriter writeToFile = new StreamWriter(pathForDiary, false, Encoding.UTF32))
         //    {
         //        FileInfo infoDiary = new FileInfo(pathForDiary);
         //        if(!infoDiary.Exists) File.Create(pathForDiary);    //проверка существования файла по указанному пути
         //            foreach (var note in notes)
         //        {
-                    
+
         //            writeToFile.Write(note.Number + ";"  + note.Date + ";" + note.Author + ";" + note.Content + ";" + note.Type);
         //            writeToFile.WriteLine();
         //        }
-                
+
         //    }
         //}
-        
+
         /// <summary>
         /// Указание пути к файлу со списокм ежедневников
         /// </summary>
@@ -129,32 +174,6 @@ namespace HomeWork_07_SKP
         //    }
         //}
 
-        //static void ShowMenu(List<Note> notes, string pathForDiary)
-        //{
-        //    while (true)
-        //    {
-        //        Console.Clear();
-        //        Console.WriteLine("Выберите необходимое действие:\n1 - Добавить заметку\n2 - Вывести все заметки на экран\n3 - Закрыть приложение");
-        //        ConsoleKeyInfo buttonPressed; //нажимаемая пользователем клавиша
-        //        buttonPressed = Console.ReadKey();
-        //        switch (buttonPressed.KeyChar)
-        //        {
-        //            case '1':
-        //                notes.Add(Note.Add(notes.Count));
-        //                break;
-        //            case '2':
-        //                ShowNotes(notes);
-        //                break;
-        //            case '3':
-
-        //                    break;
-        //            case '4':
-        //                UploadToFile(notes, pathForDiary);
-        //                Environment.Exit(0);
-        //                break;
-        //        }
-        //    }
-        //}
 
         //static void DeleteNotes(List<Note> notes)
         //{
@@ -170,9 +189,9 @@ namespace HomeWork_07_SKP
         //        case 0:
         //            break;
         //    }
-            
+
         //    Console.Write("Укажите ключевое слово по которому будет происходить удаление заметок:");
-            
+
         //    string filterFieldString = Console.ReadLine();
 
         //    for (int i = 0; i < notes.Count; i++)
@@ -241,6 +260,6 @@ namespace HomeWork_07_SKP
         //    Console.ReadKey();
         //}
 
-        
+
     }
 }

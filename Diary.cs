@@ -1,83 +1,68 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace HomeWork_07_SKP
 {
-    struct Diary
+    struct Diary : IDisposable
     {
-        private string path;    //путь к файлу хранящему список заметок
-
-        private List<Note> notes;   //список объектов структуры "Заметка"
-
-        private int countNotes; //счетчик количества заметок
-        
-        /// <summary>
-        /// Конструктор создания объекта структуры "Ежедневник"
-        /// </summary>
-        /// <param name="pathDiary">Путь к файлу храяющему списко заметок</param>
-        public Diary(string pathDiary): this()
+        private List<Note> _notes;
+        public List<Note> Notes
         {
-            Path = pathDiary;
-
-            notes = new List<Note>();   //объявление списка объектов структуры "Заметка"
-
-            countNotes = 0; //начальное значение счетчика количества заметок
+            get
+            {
+                if (_notes is null)
+                    _notes = new List<Note>();
+                return _notes;
+            }
         }
 
         /// <summary>
         /// Свойство доступа к полю "Количество заметок"
         /// </summary>
-        public int CountNotes
-        {
-            private set { countNotes = value; }
-            get { return countNotes; }
-            
-        }
+        public int CountNotes => Notes.Count();
 
         /// <summary>
         /// Свойство доступа к полю "Путь к файлу с заметками"
         /// </summary>
-        public string Path
-        {
-            set
-            {
-                
-            }
-        }
+        public string Path { get; private set; }
 
+
+        /// <summary>
+        /// Метод установки пути к файлу с дневником
+        /// </summary>
+        /// <param name="pathDiary"></param>
+        /// <returns></returns>
         public string SetPath(string pathDiary)
         {
             while (true)
             {
-            
-
                 try
                 {
-                    DirectoryInfo infoAboutDirectoryOfDiary = new DirectoryInfo(pathDiary);   //проверка на пустую строку
-                    pathDiary += "\\Diary.csv";
-                    FileInfo infoAboutDiary = new FileInfo(pathDiary);
-                    if (infoAboutDiary.Exists)
+                    //DirectoryInfo infoAboutDirectoryOfDiary = new DirectoryInfo(pathDiary);   //проверка на пустую строку
+
+                    Path = pathDiary + @"\Diary.csv";
+                    if (File.Exists(Path))
                     {
                         Console.WriteLine(
-                            $"Обнаружен существующий файл-ежедневник для хранения заметок - {pathDiary}");
+                            $"Обнаружен существующий файл-ежедневник для хранения заметок - {Path}");
                         LoadNotes();
                         Console.ReadKey();
-                        return pathDiary;
+
                     }
                     else
                     {
-                        File.Create(pathDiary);
-                        Console.WriteLine($"Файл не обнаружен. Будет создан новый файл-ежедневник для хранения заметок - {pathDiary}");
+                        File.Create(Path);
+                        Console.WriteLine($"Файл не обнаружен. Будет создан новый файл-ежедневник для хранения заметок - {Path}");
                         Console.ReadKey();
-                        return pathDiary;
                     }
                 }
-                catch
+                catch(Exception ex)
                 {
-                    Console.WriteLine(
-                        "Вы указали неверный путь. Проверьте правильности формата (пример - \"D:\\MyFiles\") и попробуйте снова");
+                    Console.WriteLine("Ошибка установки пути. Проверьте правильности формата (пример - \"D:\\MyFiles\") и попробуйте снова");
+                    Console.WriteLine($"Ошибка:\n{ex}");
                 }
             }
         }
@@ -89,8 +74,7 @@ namespace HomeWork_07_SKP
         /// <param name="newNote">Добавляемый объект структуры "Заметка"</param>
         public void AddNote(Note newNote)
         {
-            notes[countNotes] = newNote;    
-            countNotes++;   //увеличение счетчика числа заметок
+            Notes.Add(newNote);
         }
 
         /// <summary>
@@ -98,32 +82,29 @@ namespace HomeWork_07_SKP
         /// </summary>
         public void LoadNotes()
         {
-            string[] lines = File.ReadAllLines(path);   //объявление массива всех строк файла 
+            // 1. Нах 2 раза с файла считать хочешь?
+            // 2. В структуре Note объявляешь статический метод <Note Parse(string)> или <bool TryParse(string, out Note note)>и там парсишь
 
-            int countOfNotes = 0;   //счетчик количества загруженных заметок
-            
+            string[] lines = File.ReadAllLines(Path);   //объявление массива всех строк файла 
+
+            int notesCount = 0;   //счетчик количества загруженных заметок
+
             if (lines.Length != 0)
             {
-                using (StreamReader diaryReader = new StreamReader(path))
+                using (StreamReader diaryReader = new StreamReader(Path))
                 {
                     while (!diaryReader.EndOfStream)
                     {
                         string[] rowFromFile = diaryReader.ReadLine().Split(';');   //объявлением массива 
-
-                        countNotes++;    //увеличение счетчика числа заметок
-
                         DateTime parsedDate = DateTime.Parse(rowFromFile[1]);   //преобразование строки в формат даты
-
-                        var newNote = new Note(countNotes, parsedDate, rowFromFile[2], rowFromFile[3], rowFromFile[4]);
-
+                        var newNote = new Note(notesCount, parsedDate, rowFromFile[2], rowFromFile[3], rowFromFile[4]);
                         AddNote(newNote);   //добавление нового объекта в списко объектов "Заметка"
-
-                        countOfNotes++;
+                        notesCount++;
                     }
                 }
             }
 
-            Console.WriteLine($"Загружено {countOfNotes} заметок");
+            Console.WriteLine($"Загружено {notesCount} заметок");
 
         }
 
@@ -132,9 +113,9 @@ namespace HomeWork_07_SKP
         /// </summary>
         public void UploadNotes()
         {
-            using (StreamWriter writeToFile = new StreamWriter(path, false, Encoding.UTF32))
+            using (StreamWriter writeToFile = new StreamWriter(Path, false, Encoding.UTF32))
             {
-                foreach (var note in notes)
+                foreach (var note in Notes)
                 {
                     writeToFile.Write(note.Number + ";" + note.Date + ";" + note.Author + ";" + note.Content + ";" + note.Type);
                     writeToFile.WriteLine();
@@ -148,12 +129,12 @@ namespace HomeWork_07_SKP
         public void ShowNotes()
         {
             Console.Clear();
-            
-            string[] titles = {"№ п/п", "Дата заметки", "Автор заметки", "Содержимое заметки", "Категория заметки"};  //объявляем массив с наименованием столбцов
+
+            string[] titles = { "№ п/п", "Дата заметки", "Автор заметки", "Содержимое заметки", "Категория заметки" };  //объявляем массив с наименованием столбцов
 
             Console.WriteLine($"{titles[0],5} {titles[1],12} {titles[2],13} {titles[3],-40} {titles[4],17}");
 
-            foreach (var note in notes)
+            foreach (var note in Notes)
             {
                 Console.Write($"{note.Number,5} ");
                 Console.Write($"{note.Date.ToString("d"),12} ");
@@ -164,6 +145,12 @@ namespace HomeWork_07_SKP
             }
             Console.ReadKey();
 
+        }
+
+        public void Dispose()
+        {
+            _notes = null;
+            Path = null;
         }
     }
 }

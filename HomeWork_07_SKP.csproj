@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net4.8</TargetFramework>
+    <StartupObject>HomeWork_07_SKP.Program</StartupObject>
   </PropertyGroup>
 
 </Project>
