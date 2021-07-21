@@ -20,12 +20,8 @@ namespace HomeWork_07_SKP
 
             myDiary.SetPath(diaryPath);
 
-            while (true)
-            {
-                ShowMenu(myDiary);
-
-            }
-
+            ShowMenu(myDiary);
+            
             //myDiary.LoadNotes();    //загрузка заметок из файла
 
             //var CurrentNote = new Note();
@@ -52,28 +48,32 @@ namespace HomeWork_07_SKP
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("Выберите необходимое действие:\n1 - Добавить заметку\n2 - Вывести все заметки на экран\n3 - Закрыть приложение");
+                Console.WriteLine("Выберите необходимое действие:\n1 - Добавить заметку\n2 - Вывести все заметки на экран\n3 - Закрыть приложение и сохранить все заметки в файл");
                 ConsoleKeyInfo buttonPressed; //нажимаемая пользователем клавиша
                 buttonPressed = Console.ReadKey();
                 switch (buttonPressed.KeyChar)
                 {
-                    case '1':
-                        var CurrentNote = new Note();
-
-                        CurrentNote.Add(myDiary.CountNotes);
-
+                    case '1':   //добавление заметки
+                        
+                        var CurrentNote = Note.Add(myDiary.CountNotes); 
+                                             
                         myDiary.AddNote(CurrentNote);
 
                         break;
-                    case '2':
-                        ShowNotes(notes);
+                    
+                    case '2':   //Вывод всех заметок на экран консоли
+                        myDiary.ShowNotes();
                         break;
-                    case '3':
+                    
+                    //case '3':
 
-                        break;
-                    case '4':
-                        UploadToFile(notes, pathForDiary);
+                    //    break;
+
+                    case '3':   //закрытие приложения (с записью всех заметок в файл)
+                        myDiary.UploadNotes();
+
                         Environment.Exit(0);
+
                         break;
                 }
             }

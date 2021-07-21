@@ -52,9 +52,7 @@ namespace HomeWork_07_SKP
             Number = number;
 
             Date = date;
-
-            Author = author;
-
+                        
             Content = content;
 
             Type = type;
@@ -65,7 +63,7 @@ namespace HomeWork_07_SKP
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public Note Add(int count)
+        public static Note Add(int count)
         {
             
             int numberOfNote = count + 1;

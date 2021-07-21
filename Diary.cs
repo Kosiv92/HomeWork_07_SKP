@@ -50,21 +50,29 @@ namespace HomeWork_07_SKP
                             $"Обнаружен существующий файл-ежедневник для хранения заметок - {Path}");
                         LoadNotes();
                         Console.ReadKey();
-
+                        break;
                     }
                     else
                     {
-                        File.Create(Path);
+                        using (File.Create(Path))                       
                         Console.WriteLine($"Файл не обнаружен. Будет создан новый файл-ежедневник для хранения заметок - {Path}");
                         Console.ReadKey();
+                        break;
                     }
                 }
                 catch(Exception ex)
                 {
                     Console.WriteLine("Ошибка установки пути. Проверьте правильности формата (пример - \"D:\\MyFiles\") и попробуйте снова");
-                    Console.WriteLine($"Ошибка:\n{ex}");
+                    Console.WriteLine($"Ошибка:\n{ex}");                    
                 }
+
+                Console.WriteLine();
+                Console.Write("Введите путь к файлу снова: ");
+                pathDiary = Console.ReadLine();
+
             }
+
+            return Path;
         }
 
 
@@ -87,7 +95,7 @@ namespace HomeWork_07_SKP
 
             string[] lines = File.ReadAllLines(Path);   //объявление массива всех строк файла 
 
-            int notesCount = 0;   //счетчик количества загруженных заметок
+            int notesCount = 1;   //счетчик количества загруженных заметок
 
             if (lines.Length != 0)
             {
@@ -104,7 +112,7 @@ namespace HomeWork_07_SKP
                 }
             }
 
-            Console.WriteLine($"Загружено {notesCount} заметок");
+            Console.WriteLine($"Загружено {notesCount - 1} заметок");
 
         }
 
@@ -112,7 +120,7 @@ namespace HomeWork_07_SKP
         /// Метод записи объектов "Заметка" в файл
         /// </summary>
         public void UploadNotes()
-        {
+        {            
             using (StreamWriter writeToFile = new StreamWriter(Path, false, Encoding.UTF32))
             {
                 foreach (var note in Notes)
@@ -134,7 +142,7 @@ namespace HomeWork_07_SKP
 
             Console.WriteLine($"{titles[0],5} {titles[1],12} {titles[2],13} {titles[3],-40} {titles[4],17}");
 
-            foreach (var note in Notes)
+            foreach (var note in _notes)
             {
                 Console.Write($"{note.Number,5} ");
                 Console.Write($"{note.Date.ToString("d"),12} ");
