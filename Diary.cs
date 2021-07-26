@@ -103,11 +103,12 @@ namespace HomeWork_07_SKP
                 {
                     while (!diaryReader.EndOfStream)
                     {
-                        string[] rowFromFile = diaryReader.ReadLine().Split(';');   //объявлением массива 
-                        DateTime parsedDate = DateTime.Parse(rowFromFile[1]);   //преобразование строки в формат даты
-                        var newNote = new Note(notesCount, parsedDate, rowFromFile[2], rowFromFile[3], rowFromFile[4]);
-                        AddNote(newNote);   //добавление нового объекта в списко объектов "Заметка"
+                        string rowFromFile = diaryReader.ReadLine();   //объявление переменной для хранения данных строки из файла 
+                                                
+                        AddNote(Note.Parse(rowFromFile, notesCount));   //добавление нового объекта в списко объектов "Заметка"
+                            
                         notesCount++;
+                        
                     }
                 }
             }
@@ -154,6 +155,45 @@ namespace HomeWork_07_SKP
             Console.ReadKey();
 
         }
+
+        /// <summary>
+        /// Проверка не превышает ли указанный номер заметки счетчик количества заметок
+        /// </summary>
+        /// <param name="numberNote">Номер заметки</param>
+        /// <returns></returns>
+        public bool CheckNumberNote(int numberNote)
+        {
+            if (numberNote <= CountNotes) return true;
+            else return false;
+        }
+
+        /// <summary>
+        /// Удаление заметки по номеру
+        /// </summary>
+        /// <param name="numberNote">номер заметки</param>
+        public void DeleteNoteByNumber(int numberNote)
+        {
+            if (!CheckNumberNote(numberNote))
+            {
+                Console.WriteLine($"Заявки с номером {numberNote} не существует. Пожалуйста попробуйте снова...");
+
+                Console.ReadKey();
+
+                return;
+            }
+
+            Notes.RemoveAt(numberNote - 1); //Удаление заметки из списка заметок
+
+            for (int i = numberNote - 1; i < CountNotes; i++)   //цикл изменения номеров заметок находящихся после удаленной
+            {
+                Notes[i].ChangeNumber();
+            }
+
+            Console.WriteLine("Заметка успешно удалена. Обратите внимание, что нумерация заметок изменилась!");
+
+            Console.ReadKey();
+        }
+
 
         public void Dispose()
         {

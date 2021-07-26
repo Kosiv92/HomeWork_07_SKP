@@ -90,6 +90,31 @@ namespace HomeWork_07_SKP
             return currentNote;
         }
 
+        /// <summary>
+        /// Метод преобразования строки из файла в объект структуры "Заметка"
+        /// </summary>
+        /// <param name="rowFromFile">Строка из файла хранящего заметки</param>
+        /// <param name="notesCount">текущий номер добавляемой заметки</param>
+        /// <returns></returns>
+        public static Note Parse(string rowFromFile, int notesCount)
+        {
+            string[] fieldsOfClass = rowFromFile.Split(';');  //объявлением массива c полями объекта заметка
+
+            DateTime parsedDate = DateTime.Parse(fieldsOfClass[1]);   //преобразование строки в формат даты
+
+            var newNote = new Note(notesCount, parsedDate, fieldsOfClass[2], fieldsOfClass[3], fieldsOfClass[4]);
+
+            return newNote;
+        }
+
+        /// <summary>
+        /// Изменение номера заметки после удаления предшествующей заметки в общем списке
+        /// </summary>
+        public void ChangeNumber()
+        {
+            Number--;   //уменьшение номера заметки на единицу
+        }
+
     }
 
 

@@ -48,7 +48,7 @@ namespace HomeWork_07_SKP
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("Выберите необходимое действие:\n1 - Добавить заметку\n2 - Вывести все заметки на экран\n3 - Закрыть приложение и сохранить все заметки в файл");
+                Console.WriteLine("Выберите необходимое действие:\n1 - Добавить заметку\n2 - Вывести все заметки на экран\n3 - Удалить заметку по номеру\n4 - Закрыть приложение и сохранить все заметки в файл");
                 ConsoleKeyInfo buttonPressed; //нажимаемая пользователем клавиша
                 buttonPressed = Console.ReadKey();
                 switch (buttonPressed.KeyChar)
@@ -64,12 +64,19 @@ namespace HomeWork_07_SKP
                     case '2':   //Вывод всех заметок на экран консоли
                         myDiary.ShowNotes();
                         break;
-                    
-                    //case '3':
+                                            
 
-                    //    break;
+                    case '3':   // удаление заметки по номеру
 
-                    case '3':   //закрытие приложения (с записью всех заметок в файл)
+                        Console.Write("Введите номер заметки, которую необходимо удалить: ");
+
+                        int numerNote = Convert.ToInt32(Console.ReadLine());
+
+                        myDiary.DeleteNoteByNumber(numerNote);
+
+                        break;
+
+                    case '4':   //закрытие приложения (с записью всех заметок в файл)
                         myDiary.UploadNotes();
 
                         Environment.Exit(0);
@@ -241,24 +248,7 @@ namespace HomeWork_07_SKP
         //    return fieldNum;
         //}
 
-
-        //static void ShowNotes(List<Note> notes)
-        //{
-        //    Console.Clear();
-        //    string[] titles =
-        //        {"№ п/п", "Дата заметки", "Автор заметки", "Содержимое заметки", "Категория заметки"};
-        //    Console.WriteLine($"{titles[0],5} {titles[1],12} {titles[2],13} {titles[3],-40} {titles[4],17}");
-        //    foreach (var note in notes)
-        //    {
-        //        Console.Write($"{note.Number,5} ");
-        //        Console.Write($"{note.Date.ToString("d"),12} ");
-        //        Console.Write($"{note.Author,13} ");
-        //        Console.Write($"{note.Content,-40} ");
-        //        Console.Write($"{note.Type,17} ");
-        //        Console.WriteLine();
-        //    }
-        //    Console.ReadKey();
-        //}
+              
 
 
     }
