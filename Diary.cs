@@ -2,23 +2,18 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace HomeWork_07_SKP
 {
-    struct Diary : IDisposable
+    struct Diary
     {
-        private List<Note> _notes;
-        public List<Note> Notes
-        {
-            get
-            {
-                if (_notes is null)
-                    _notes = new List<Note>();
-                return _notes;
-            }
-        }
-
+        /// <summary>
+        /// Свойство доступа к полю "Коллекция заметок"
+        /// </summary>
+        public List<Note> Notes { get; private set; }
+        
         /// <summary>
         /// Свойство доступа к полю "Количество заметок"
         /// </summary>
@@ -29,6 +24,57 @@ namespace HomeWork_07_SKP
         /// </summary>
         public string Path { get; private set; }
 
+        /// <summary>
+        /// Перечисление полей заметки
+        /// </summary>
+        public enum diaryColumns: byte
+        {
+            number,
+            date,
+            author,
+            contentNote,
+            type
+        }
+
+        /// <summary>
+        /// Метод выбора поля заметки
+        /// </summary>
+        /// <returns>Возвращает выбранное пользователем поле</returns>
+        public diaryColumns ChooseDiaryColumns()
+        {
+            while (true)
+            {
+                
+                Console.WriteLine(
+                    "Пожалуйста выберите поле заметки:\n1 - Номер заметки\n2 - Дата заметки\n3 - Автор заметки\n4 - Категория заметки");
+                var chooseUser = Console.ReadKey();
+
+                switch (chooseUser.KeyChar)
+                {
+                    case '1':
+                        Console.WriteLine("Вы выбрали поле \"Номер заметки\"");
+                        Console.ReadKey();
+                        return diaryColumns.number;
+                    case '2':
+                        Console.WriteLine("Вы выбрали поле \"Дата заметки\"");
+                        Console.ReadKey();
+                        return diaryColumns.date;
+                    case '3':
+                        Console.WriteLine("Вы выбрали поле \"Автор заметки\"");
+                        Console.ReadKey();
+                        return diaryColumns.author;
+                    case '4':
+                        Console.WriteLine("Вы выбрали поле \"Категория заметки\"");
+                        Console.ReadKey();
+                        return diaryColumns.type;
+                    default:
+                        Console.WriteLine("Вы нажали неизвестную кнопку. Попробуйте снова...");
+                        Console.ReadKey();
+                        Console.Clear();
+                        break;
+                }
+            }
+        }
 
         /// <summary>
         /// Метод установки пути к файлу с дневником
@@ -90,8 +136,7 @@ namespace HomeWork_07_SKP
         /// </summary>
         public void LoadNotes()
         {
-            // 1. Нах 2 раза с файла считать хочешь?
-            // 2. В структуре Note объявляешь статический метод <Note Parse(string)> или <bool TryParse(string, out Note note)>и там парсишь
+            
 
             string[] lines = File.ReadAllLines(Path);   //объявление массива всех строк файла 
 
@@ -132,10 +177,111 @@ namespace HomeWork_07_SKP
             }
         }
 
+        public void ChooseShowMode()
+        {
+            bool methodWork = true;
+            while(methodWork)
+            {
+                Console.WriteLine("Выберите режим вывода заметок на экран:\n1 - Обычный (по порядковым номерам)\n2 - Пользовательский(сортировка по выбранному полю)");
+                var chooseUser = Console.ReadKey();
+                switch (chooseUser.KeyChar)
+                {
+                    case '1':
+                        Console.WriteLine("Вы выбрали обычный режим представления заметок");
+                        Console.ReadKey();
+                        ShowNotes(Notes);
+                        methodWork = false;
+                        break;
+                    case '2':
+                        Console.WriteLine("Вы выбрали пользовательский режим представления заметок");
+                        Console.ReadKey();
+                        ShowNotes(CreateUserShowMode(SetSortMode(),ChooseDiaryColumns()));
+                        methodWork = false;
+                        break;
+                    default:
+                        Console.WriteLine("Вы нажали неизвестную кнопку. Попробуйте снова...");
+                        Console.ReadKey();
+                        Console.Clear();
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Выбор режима сортировки
+        /// </summary>
+        /// <returns>Возвращает булевое значение 1 - прямая сортировка, 2 - обратная</returns>
+        public bool SetSortMode()
+        {
+            Console.Clear();
+            bool methodWork = true;
+            bool sortMode = true;
+            while (true)
+            {
+                Console.WriteLine("Укажите тип сортировки:\n1-По возрастанию\n2-По убыванию");
+                var chooseUser = Console.ReadKey();
+                switch (chooseUser.KeyChar)
+                {
+                    case '1':
+                        Console.WriteLine("Вы выбрали сортировку по возрастанию");
+                        Console.ReadKey();
+                        sortMode = true;
+                        methodWork = false;
+                        break;
+                    case '2':
+                        Console.WriteLine("Вы выбрали сортировку по убыванию");
+                        Console.ReadKey();
+                        sortMode = false;
+                        methodWork = false;
+                        break;
+                    default:
+                        Console.WriteLine("Вы нажали неизвестную кнопку. Попробуйте снова...");
+                        Console.ReadKey();
+                        Console.Clear();
+                        break;
+                }
+                return sortMode;
+            }
+        }
+
+        /// <summary>
+        /// Метод для сортировки коллекции по заданным пользователем параметрам
+        /// </summary>
+        /// <param name="sortMode">Прямая или обратная сотировка</param>
+        /// <param name="fieldNote">Поле класса "Заметка" по которому будет происходить сортировка</param>
+        /// <returns>Отсортированная коллекция</returns>
+        public List<Note> CreateUserShowMode(bool sortMode, diaryColumns fieldNote)
+        {
+            if (fieldNote == diaryColumns.number)
+            {
+                if(sortMode) return Notes.OrderBy(n => n.Number).ToList();
+                else return Notes.OrderByDescending(n => n.Number).ToList();
+            }
+
+            if (fieldNote == diaryColumns.date)
+            {
+                if (sortMode) return Notes.OrderBy(n => n.Date).ToList();
+                else return Notes.OrderByDescending(n => n.Date).ToList();
+            }
+
+            if (fieldNote == diaryColumns.author)
+            {
+                if (sortMode) return Notes.OrderBy(n => n.Author).ToList();
+                else return Notes.OrderByDescending(n => n.Author).ToList();
+            }
+
+            if (fieldNote == diaryColumns.type)
+            {
+                if (sortMode) return Notes.OrderBy(n => n.Type).ToList();
+                else return Notes.OrderByDescending(n => n.Type).ToList();
+            }
+            return Notes;
+        }
+
         /// <summary>
         /// Метод вывода всех заметок на экран консоли
         /// </summary>
-        public void ShowNotes()
+        public void ShowNotes(List<Note>Notes)
         {
             Console.Clear();
 
@@ -143,7 +289,7 @@ namespace HomeWork_07_SKP
 
             Console.WriteLine($"{titles[0],5} {titles[1],12} {titles[2],13} {titles[3],-40} {titles[4],17}");
 
-            foreach (var note in _notes)
+            foreach (var note in Notes)
             {
                 Console.Write($"{note.Number,5} ");
                 Console.Write($"{note.Date.ToString("d"),12} ");
@@ -193,12 +339,6 @@ namespace HomeWork_07_SKP
 
             Console.ReadKey();
         }
-
-
-        public void Dispose()
-        {
-            _notes = null;
-            Path = null;
-        }
+        
     }
 }

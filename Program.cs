@@ -62,11 +62,13 @@ namespace HomeWork_07_SKP
                         break;
                     
                     case '2':   //Вывод всех заметок на экран консоли
-                        myDiary.ShowNotes();
+                        myDiary.ChooseShowMode();
                         break;
                                             
 
                     case '3':   // удаление заметки по номеру
+
+                        Console.Write("Выберите поле по которому будут найдены все заметки для удаления: ");
 
                         Console.Write("Введите номер заметки, которую необходимо удалить: ");
 
@@ -85,6 +87,9 @@ namespace HomeWork_07_SKP
                 }
             }
         }
+
+        //static void ChooseNotesForDelete();
+
 
         /// <summary>
         /// Метод загрузки объектов структуры (заметок) из файла
@@ -248,7 +253,7 @@ namespace HomeWork_07_SKP
         //    return fieldNum;
         //}
 
-              
+
 
 
     }
