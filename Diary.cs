@@ -7,12 +7,26 @@ using System.Text;
 
 namespace HomeWork_07_SKP
 {
+    
+    
     struct Diary
     {
         /// <summary>
+        /// Приватное поле для хранения коллекции заметок
+        /// </summary>
+        private List<Note> _notes;
+
+        /// <summary>
         /// Свойство доступа к полю "Коллекция заметок"
         /// </summary>
-        public List<Note> Notes { get; private set; }
+        public List<Note> Notes
+        {
+            get {
+                if (_notes is null) _notes = new List<Note>();
+                return _notes;
+            }
+            private set { _notes = value; }
+        }
         
         /// <summary>
         /// Свойство доступа к полю "Количество заметок"
@@ -27,21 +41,19 @@ namespace HomeWork_07_SKP
         /// <summary>
         /// Перечисление полей заметки
         /// </summary>
-        public enum diaryColumns: byte
-        {
-            number,
-            date,
-            author,
-            contentNote,
-            type
-        }
+        
+        //private DiaryRequest Request = new DiaryRequest();
+
+
 
         /// <summary>
         /// Метод выбора поля заметки
         /// </summary>
         /// <returns>Возвращает выбранное пользователем поле</returns>
-        public diaryColumns ChooseDiaryColumns()
+        public static diaryColumns ChooseDiaryColumns()
         {
+            Console.WriteLine();
+            
             while (true)
             {
                 
@@ -49,21 +61,21 @@ namespace HomeWork_07_SKP
                     "Пожалуйста выберите поле заметки:\n1 - Номер заметки\n2 - Дата заметки\n3 - Автор заметки\n4 - Категория заметки");
                 var chooseUser = Console.ReadKey();
 
-                switch (chooseUser.KeyChar)
+                switch (chooseUser.Key)
                 {
-                    case '1':
+                    case ConsoleKey.D1:
                         Console.WriteLine("Вы выбрали поле \"Номер заметки\"");
                         Console.ReadKey();
                         return diaryColumns.number;
-                    case '2':
+                    case ConsoleKey.D2:
                         Console.WriteLine("Вы выбрали поле \"Дата заметки\"");
                         Console.ReadKey();
                         return diaryColumns.date;
-                    case '3':
+                    case ConsoleKey.D3:
                         Console.WriteLine("Вы выбрали поле \"Автор заметки\"");
                         Console.ReadKey();
                         return diaryColumns.author;
-                    case '4':
+                    case ConsoleKey.D4:
                         Console.WriteLine("Вы выбрали поле \"Категория заметки\"");
                         Console.ReadKey();
                         return diaryColumns.type;
@@ -128,16 +140,24 @@ namespace HomeWork_07_SKP
         /// <param name="newNote">Добавляемый объект структуры "Заметка"</param>
         public void AddNote(Note newNote)
         {
-            Notes.Add(newNote);
+            try
+            {
+                Notes.Add(newNote);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Исключение: {ex.Message}");
+            }
         }
 
+
+        #region Load/Upload Methods
+        
         /// <summary>
         /// Метод загрузки объектов "Заметка" из файла
         /// </summary>
         public void LoadNotes()
         {
-            
-
             string[] lines = File.ReadAllLines(Path);   //объявление массива всех строк файла 
 
             int notesCount = 1;   //счетчик количества загруженных заметок
@@ -167,7 +187,7 @@ namespace HomeWork_07_SKP
         /// </summary>
         public void UploadNotes()
         {            
-            using (StreamWriter writeToFile = new StreamWriter(Path, false, Encoding.UTF32))
+            using (StreamWriter writeToFile = new StreamWriter(Path, false, Encoding.UTF8))
             {
                 foreach (var note in Notes)
                 {
@@ -177,12 +197,19 @@ namespace HomeWork_07_SKP
             }
         }
 
+        #endregion
+
+
+        #region show
+
+        
         public void ChooseShowMode()
         {
+            Console.Clear();
             bool methodWork = true;
             while(methodWork)
             {
-                Console.WriteLine("Выберите режим вывода заметок на экран:\n1 - Обычный (по порядковым номерам)\n2 - Пользовательский(сортировка по выбранному полю)");
+                Console.WriteLine("Выберите режим вывода заметок на экран:\n1 - Обычный (по порядковым номерам)\n2 - Пользовательский(сортировка по выбранному полю)\n3 - Пользовательский(фильтрация по выбранному полю)");
                 var chooseUser = Console.ReadKey();
                 switch (chooseUser.KeyChar)
                 {
@@ -193,9 +220,15 @@ namespace HomeWork_07_SKP
                         methodWork = false;
                         break;
                     case '2':
-                        Console.WriteLine("Вы выбрали пользовательский режим представления заметок");
+                        Console.WriteLine("Вы выбрали пользовательский режим представления заметок (сортировка)");
                         Console.ReadKey();
-                        ShowNotes(CreateUserShowMode(SetSortMode(),ChooseDiaryColumns()));
+                        ShowNotes(CreateUserShowModeWithSort(SetSortMode(),ChooseDiaryColumns()));
+                        methodWork = false;
+                        break;
+                    case '3':
+                        Console.WriteLine("Вы выбрали пользовательский режим представления заметок (фильтрация)");
+                        Console.ReadKey();
+                        ShowNotes(CreateUserShowModeWithFilter(ChooseDiaryColumns()));
                         methodWork = false;
                         break;
                     default:
@@ -206,6 +239,84 @@ namespace HomeWork_07_SKP
                 }
             }
         }
+
+        /// <summary>
+        /// Метод вывода всех заметок на экран консоли
+        /// </summary>
+        public void ShowNotes(List<Note> Notes)
+        {
+            Console.Clear();
+
+            string[] titles = { "№ п/п", "Дата заметки", "Автор заметки", "Содержимое заметки", "Категория заметки" };  //объявляем массив с наименованием столбцов
+
+            Console.WriteLine($"{titles[0],5} {titles[1],12} {titles[2],13} {titles[3],-40} {titles[4],17}");
+
+            foreach (var note in Notes)
+            {
+                Console.Write($"{note.Number,5} ");
+                Console.Write($"{note.Date.ToString("d"),12} ");
+                Console.Write($"{note.Author,13} ");
+                Console.Write($"{note.Content,-40} ");
+                Console.Write($"{note.Type,17} ");
+                Console.WriteLine();
+            }
+            Console.ReadKey();
+
+        }
+
+
+        #endregion
+
+        /*public void ChangeSortMode(displayColumns column)
+        {
+            Console.Clear();
+            while (true)
+            {
+                Console.WriteLine("Укажите тип сортировки:\n1-По возрастанию\n2-По убыванию");
+                var chooseUser = Console.ReadKey();
+
+                SortType? sortBy = chooseUser.KeyChar switch
+                {
+                    '1' => SortType.ASC;
+                    '2' => SortType.DESC;
+                    _ => null;
+                }
+
+                if (sortBy == null) {
+                    Console.WriteLine("Вы нажали неизвестную кнопку. Попробуйте снова...");
+                    Console.ReadKey();
+                    continue;
+                }
+
+                Console.WriteLine($"Вы выбрали сортировку {sortBy}");
+
+                request.Sort = new DiarySort { Column = column, SortBy = sortBy.Value };
+
+                switch (chooseUser.KeyChar)
+                {
+                    case '1':
+                        Console.WriteLine("Вы выбрали сортировку по возрастанию");
+                        Console.ReadKey();
+                        sortBy == SortType.ASC;
+                        break;
+                    case '2':
+                        Console.WriteLine("Вы выбрали сортировку по убыванию");
+                        Console.ReadKey();
+                        sortBy == SortType.DESC;
+                        break;
+                    default:
+                        Console.WriteLine("Вы нажали неизвестную кнопку. Попробуйте снова...");
+                        Console.ReadKey();
+                        Console.Clear();
+                        break;
+                }
+
+
+                return sortMode;
+            }
+        }*/
+
+        #region sort&filter monsters
 
         /// <summary>
         /// Выбор режима сортировки
@@ -245,16 +356,16 @@ namespace HomeWork_07_SKP
         }
 
         /// <summary>
-        /// Метод для сортировки коллекции по заданным пользователем параметрам
+        /// Метод для сортировки коллекции заметок по заданным пользователем параметрам
         /// </summary>
         /// <param name="sortMode">Прямая или обратная сотировка</param>
         /// <param name="fieldNote">Поле класса "Заметка" по которому будет происходить сортировка</param>
         /// <returns>Отсортированная коллекция</returns>
-        public List<Note> CreateUserShowMode(bool sortMode, diaryColumns fieldNote)
+        public List<Note> CreateUserShowModeWithSort(bool sortMode, diaryColumns fieldNote)
         {
             if (fieldNote == diaryColumns.number)
             {
-                if(sortMode) return Notes.OrderBy(n => n.Number).ToList();
+                if (sortMode) return Notes.OrderBy(n => n.Number).ToList();
                 else return Notes.OrderByDescending(n => n.Number).ToList();
             }
 
@@ -279,28 +390,79 @@ namespace HomeWork_07_SKP
         }
 
         /// <summary>
-        /// Метод вывода всех заметок на экран консоли
+        /// Метод фильтрации коллекции заметок по заданным пользователем параметрам
         /// </summary>
-        public void ShowNotes(List<Note>Notes)
+        /// <param name="fieldNote">Поле класса "Заметка" по которому будет происходить фильтрация</param>
+        /// <returns>Отфильтрованная коллекция</returns>
+        public List<Note> CreateUserShowModeWithFilter(diaryColumns fieldNote)
         {
-            Console.Clear();
-
-            string[] titles = { "№ п/п", "Дата заметки", "Автор заметки", "Содержимое заметки", "Категория заметки" };  //объявляем массив с наименованием столбцов
-
-            Console.WriteLine($"{titles[0],5} {titles[1],12} {titles[2],13} {titles[3],-40} {titles[4],17}");
-
-            foreach (var note in Notes)
+            if (fieldNote == diaryColumns.number)
             {
-                Console.Write($"{note.Number,5} ");
-                Console.Write($"{note.Date.ToString("d"),12} ");
-                Console.Write($"{note.Author,13} ");
-                Console.Write($"{note.Content,-40} ");
-                Console.Write($"{note.Type,17} ");
-                Console.WriteLine();
+                bool inputCorrect = false;
+                int number = 0;
+                while (!inputCorrect)
+                {
+                    Console.Write("Введите номер заметки:");
+                    string inputByUser = Console.ReadLine();
+                    inputCorrect = Int32.TryParse(inputByUser, out number);
+                    if (!inputCorrect) Console.WriteLine("Некорректный ввод. Необходимо ввести целое число. Попробуйте снова.");
+                    Console.ReadKey();
+                }
+
+                Console.WriteLine($"Введен номер - {number}. На экран консоли будут выведена заметка с указанным номером...");
+                Console.ReadKey();
+                return Notes.Where(n => n.Number == number).ToList();
             }
-            Console.ReadKey();
+
+            if (fieldNote == diaryColumns.date)
+            {
+                bool inputCorrect = false;
+                DateTime date = DateTime.MinValue;
+                while (!inputCorrect)
+                {
+                    Console.Write("Введите дату заметки:");
+                    string inputByUser = Console.ReadLine();
+                    inputCorrect = DateTime.TryParse(inputByUser, out date);
+                    if (!inputCorrect) Console.WriteLine("Некорректный ввод. Необходимо ввести дату в формате - ДД.ММ.ГГГГ. Попробуйте снова.");
+                    Console.ReadKey();
+                }
+
+                Console.WriteLine($"Введена дата - {date}. На экран консоли будут выведены все заметка с указанной датой...");
+                Console.ReadKey();
+                return Notes.Where(n => n.Date == date).ToList();
+            }
+
+            if (fieldNote == diaryColumns.author)
+            {
+                Console.Write("Введите автора заметки:");
+                string author = Console.ReadLine();
+
+                Console.WriteLine($"Введен автор - {author}. На экран консоли будут выведены все заметки указанного автора...");
+                Console.ReadKey();
+                return Notes.Where(n => n.Author == author).ToList();
+            }
+
+            if (fieldNote == diaryColumns.type)
+            {
+                Console.Write("Введите категорию заметки:");
+                string type = Console.ReadLine();
+
+                Console.WriteLine($"Введена категория - {type}. На экран консоли будут выведены все заметки с указанной категорией...");
+                Console.ReadKey();
+                return Notes.Where(n => n.Type == type).ToList();
+            }
+
+            return Notes;
 
         }
+        
+
+        #endregion
+
+
+
+
+        #region del methods
 
         /// <summary>
         /// Проверка не превышает ли указанный номер заметки счетчик количества заметок
@@ -312,6 +474,7 @@ namespace HomeWork_07_SKP
             if (numberNote <= CountNotes) return true;
             else return false;
         }
+
 
         /// <summary>
         /// Удаление заметки по номеру
@@ -339,6 +502,10 @@ namespace HomeWork_07_SKP
 
             Console.ReadKey();
         }
-        
+
+        #endregion
+
+
+
     }
 }
