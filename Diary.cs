@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace HomeWork_07_SKP
@@ -41,10 +40,12 @@ namespace HomeWork_07_SKP
         /// <summary>
         /// Перечисление полей заметки
         /// </summary>
-        
-        //private DiaryRequest Request = new DiaryRequest();
-
-
+             
+        public Note this[int index]
+        {
+            get{ return Notes[index]; }
+            set{ Notes[index] = value; }
+            }
 
         /// <summary>
         /// Метод выбора поля заметки
@@ -87,6 +88,31 @@ namespace HomeWork_07_SKP
                 }
             }
         }
+        
+        /// <summary>
+        /// Метод выбора номера заявки
+        /// </summary>
+        /// <returns>Возвращает целое число</returns>
+        public static int ChooseNumberOfNote()
+        {
+            bool methodWork = false;
+
+            int numberOfNote = 0;
+
+            do{
+                Console.WriteLine();
+                Console.WriteLine("Укажите номер заметки для редактирования:");
+                var inputByUser = Console.ReadLine();
+                methodWork = Int32.TryParse(inputByUser, out numberOfNote);
+                methodWork = numberOfNote > 0;
+                if(!methodWork) Console.WriteLine("Введено некорректное значение. Номер должен быть больше нуля. Попробуйте снова...");
+
+                }while(!methodWork);
+            
+            return numberOfNote;
+            
+            }
+
 
         /// <summary>
         /// Метод установки пути к файлу с дневником
@@ -133,22 +159,14 @@ namespace HomeWork_07_SKP
             return Path;
         }
 
-
-        /// <summary>
-        /// Метод добавления нового объекта "Заметка" в список объектов структуры заметка
-        /// </summary>
-        /// <param name="newNote">Добавляемый объект структуры "Заметка"</param>
-        public void AddNote(Note newNote)
+        public void ChangeNumber()
         {
-            try
+            for(int i = 0; i < Notes.Count; i++)
             {
-                Notes.Add(newNote);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Исключение: {ex.Message}");
+                Notes[i].ChangeNumberOfNote(Notes[i], i);
             }
         }
+        
 
 
         #region Load/Upload Methods
@@ -182,6 +200,38 @@ namespace HomeWork_07_SKP
 
         }
 
+        public void LoadNotesByDates()
+        {
+            string[] lines = File.ReadAllLines(Path);   //объявление массива всех строк файла
+            
+            DatesPeriod dateLoad = new DatesPeriod();
+
+            int notesCount = 1;   //счетчик количества загруженных заметок
+
+            if (lines.Length != 0)
+            {
+                using (StreamReader diaryReader = new StreamReader(Path))
+                {
+                    while (!diaryReader.EndOfStream)
+                    {
+                        string rowFromFile = diaryReader.ReadLine();   //объявление переменной для хранения данных строки из файла 
+                                                
+                        Note newNote = Note.Parse(rowFromFile, notesCount);
+                        
+                        if(newNote.Date >= dateLoad.StartDate && newNote.Date <= dateLoad.EndDate) 
+                        {
+                            AddNote(newNote);
+                            notesCount++;
+                        }                                     
+                                               
+                    }
+                }
+            }
+
+            Console.WriteLine($"Загружено {notesCount - 1} заметок");
+        }
+
+
         /// <summary>
         /// Метод записи объектов "Заметка" в файл
         /// </summary>
@@ -199,7 +249,6 @@ namespace HomeWork_07_SKP
 
         #endregion
 
-
         #region show
 
         
@@ -209,7 +258,7 @@ namespace HomeWork_07_SKP
             bool methodWork = true;
             while(methodWork)
             {
-                Console.WriteLine("Выберите режим вывода заметок на экран:\n1 - Обычный (по порядковым номерам)\n2 - Пользовательский(сортировка по выбранному полю)\n3 - Пользовательский(фильтрация по выбранному полю)");
+                Console.WriteLine("Выберите режим вывода заметок на экран:\n1 - Обычный (по порядковым номерам)\n2 - Пользовательский");
                 var chooseUser = Console.ReadKey();
                 switch (chooseUser.KeyChar)
                 {
@@ -219,18 +268,20 @@ namespace HomeWork_07_SKP
                         ShowNotes(Notes);
                         methodWork = false;
                         break;
+
                     case '2':
                         Console.WriteLine("Вы выбрали пользовательский режим представления заметок (сортировка)");
                         Console.ReadKey();
-                        ShowNotes(CreateUserShowModeWithSort(SetSortMode(),ChooseDiaryColumns()));
+                        
+                        DiaryRequest requestByUser = new DiaryRequest();
+                        
+                        requestByUser.Filter.turnFilter();
+
+                        ShowNotes(GetNotes(requestByUser));
+                        
                         methodWork = false;
-                        break;
-                    case '3':
-                        Console.WriteLine("Вы выбрали пользовательский режим представления заметок (фильтрация)");
-                        Console.ReadKey();
-                        ShowNotes(CreateUserShowModeWithFilter(ChooseDiaryColumns()));
-                        methodWork = false;
-                        break;
+                        break; 
+                        
                     default:
                         Console.WriteLine("Вы нажали неизвестную кнопку. Попробуйте снова...");
                         Console.ReadKey();
@@ -265,58 +316,50 @@ namespace HomeWork_07_SKP
         }
 
 
-        #endregion
-
-        /*public void ChangeSortMode(displayColumns column)
-        {
-            Console.Clear();
-            while (true)
-            {
-                Console.WriteLine("Укажите тип сортировки:\n1-По возрастанию\n2-По убыванию");
-                var chooseUser = Console.ReadKey();
-
-                SortType? sortBy = chooseUser.KeyChar switch
-                {
-                    '1' => SortType.ASC;
-                    '2' => SortType.DESC;
-                    _ => null;
-                }
-
-                if (sortBy == null) {
-                    Console.WriteLine("Вы нажали неизвестную кнопку. Попробуйте снова...");
-                    Console.ReadKey();
-                    continue;
-                }
-
-                Console.WriteLine($"Вы выбрали сортировку {sortBy}");
-
-                request.Sort = new DiarySort { Column = column, SortBy = sortBy.Value };
-
-                switch (chooseUser.KeyChar)
-                {
-                    case '1':
-                        Console.WriteLine("Вы выбрали сортировку по возрастанию");
-                        Console.ReadKey();
-                        sortBy == SortType.ASC;
-                        break;
-                    case '2':
-                        Console.WriteLine("Вы выбрали сортировку по убыванию");
-                        Console.ReadKey();
-                        sortBy == SortType.DESC;
-                        break;
-                    default:
-                        Console.WriteLine("Вы нажали неизвестную кнопку. Попробуйте снова...");
-                        Console.ReadKey();
-                        Console.Clear();
-                        break;
-                }
-
-
-                return sortMode;
-            }
-        }*/
+        #endregion               
 
         #region sort&filter monsters
+
+        /// <summary>
+        /// Метод сортировки и фильтрации коллекции заметок
+        /// </summary>
+        /// <param name="request">Объект класса с указанием настроек фильтрации и сортировки</param>
+        /// <returns>коллекция заметок после преобразования</returns>
+        public List<Note> GetNotes(DiaryRequest request)
+        {
+            List<Note> displayNotes = new List<Note>();
+            
+            if(request.Filter.FilterEnabled)
+            {
+                switch(request.Filter.Column)
+                {
+                    case diaryColumns.number:
+                    int digit = (int)request.Filter.Value;
+                    displayNotes = Notes.Where(n => n.Number == digit).ToList();
+                    break;
+                    case diaryColumns.date:
+                    DateTime date = (DateTime)request.Filter.Value;
+                    displayNotes = Notes.Where(n => n.Date == date).ToList();
+                    break;
+                    case diaryColumns.author:
+                    string author = (string)request.Filter.Value;
+                    displayNotes = Notes.Where(n => n.Author == author).ToList();   
+                        break;
+                        case diaryColumns.type:
+                    string type = (string)request.Filter.Value;
+                    displayNotes = Notes.Where(n => n.Type == type).ToList();   
+                        break;
+                default:
+                    break;
+                }                  
+            }else displayNotes = Notes;
+
+            if(request.Sort.SortBy == DiarySort.SortType.ASC) displayNotes = displayNotes.OrderBy(n => request.Sort.SortBy).ToList();
+            else displayNotes = displayNotes.OrderByDescending(n => request.Sort.SortBy).ToList();
+
+            return displayNotes;
+        }
+          
 
         /// <summary>
         /// Выбор режима сортировки
@@ -354,154 +397,106 @@ namespace HomeWork_07_SKP
                 return sortMode;
             }
         }
+          
 
         /// <summary>
-        /// Метод для сортировки коллекции заметок по заданным пользователем параметрам
+        /// Метод ввода значения поля пользователем
         /// </summary>
-        /// <param name="sortMode">Прямая или обратная сотировка</param>
-        /// <param name="fieldNote">Поле класса "Заметка" по которому будет происходить сортировка</param>
-        /// <returns>Отсортированная коллекция</returns>
-        public List<Note> CreateUserShowModeWithSort(bool sortMode, diaryColumns fieldNote)
-        {
-            if (fieldNote == diaryColumns.number)
-            {
-                if (sortMode) return Notes.OrderBy(n => n.Number).ToList();
-                else return Notes.OrderByDescending(n => n.Number).ToList();
-            }
+        /// <returns>Возвращает значение одного из полей заметки</returns>
+        static public object GetValue(diaryColumns Column)
+        {            
+            bool inputCorrect = false;
+            object result;
 
-            if (fieldNote == diaryColumns.date)
+            do
             {
-                if (sortMode) return Notes.OrderBy(n => n.Date).ToList();
-                else return Notes.OrderByDescending(n => n.Date).ToList();
-            }
+                Console.WriteLine();
+                Console.Write("Введите значение: ");
 
-            if (fieldNote == diaryColumns.author)
-            {
-                if (sortMode) return Notes.OrderBy(n => n.Author).ToList();
-                else return Notes.OrderByDescending(n => n.Author).ToList();
-            }
+                string inputByUser = Console.ReadLine();
 
-            if (fieldNote == diaryColumns.type)
-            {
-                if (sortMode) return Notes.OrderBy(n => n.Type).ToList();
-                else return Notes.OrderByDescending(n => n.Type).ToList();
-            }
-            return Notes;
-        }
+                Console.WriteLine();
 
-        /// <summary>
-        /// Метод фильтрации коллекции заметок по заданным пользователем параметрам
-        /// </summary>
-        /// <param name="fieldNote">Поле класса "Заметка" по которому будет происходить фильтрация</param>
-        /// <returns>Отфильтрованная коллекция</returns>
-        public List<Note> CreateUserShowModeWithFilter(diaryColumns fieldNote)
-        {
-            if (fieldNote == diaryColumns.number)
-            {
-                bool inputCorrect = false;
-                int number = 0;
-                while (!inputCorrect)
+                switch (Column)
                 {
-                    Console.Write("Введите номер заметки:");
-                    string inputByUser = Console.ReadLine();
-                    inputCorrect = Int32.TryParse(inputByUser, out number);
-                    if (!inputCorrect) Console.WriteLine("Некорректный ввод. Необходимо ввести целое число. Попробуйте снова.");
-                    Console.ReadKey();
-                }
+                    case diaryColumns.number:                        
+                        result = ChooseNumberOfNote();
+                        break;
+                        
+                    case diaryColumns.date:
+                        inputCorrect = DateTime.TryParse(inputByUser, out DateTime date);
+                        if (!inputCorrect)
+                        {
+                            Console.WriteLine(
+                                "Некорректный ввод. Необходимо ввести дату в формате - ДД.ММ.ГГГГ. Попробуйте снова.");                                                       
+                        }
+                        result = date;;
+                        break;
 
-                Console.WriteLine($"Введен номер - {number}. На экран консоли будут выведена заметка с указанным номером...");
-                Console.ReadKey();
-                return Notes.Where(n => n.Number == number).ToList();
-            }
-
-            if (fieldNote == diaryColumns.date)
-            {
-                bool inputCorrect = false;
-                DateTime date = DateTime.MinValue;
-                while (!inputCorrect)
-                {
-                    Console.Write("Введите дату заметки:");
-                    string inputByUser = Console.ReadLine();
-                    inputCorrect = DateTime.TryParse(inputByUser, out date);
-                    if (!inputCorrect) Console.WriteLine("Некорректный ввод. Необходимо ввести дату в формате - ДД.ММ.ГГГГ. Попробуйте снова.");
-                    Console.ReadKey();
-                }
-
-                Console.WriteLine($"Введена дата - {date}. На экран консоли будут выведены все заметка с указанной датой...");
-                Console.ReadKey();
-                return Notes.Where(n => n.Date == date).ToList();
-            }
-
-            if (fieldNote == diaryColumns.author)
-            {
-                Console.Write("Введите автора заметки:");
-                string author = Console.ReadLine();
-
-                Console.WriteLine($"Введен автор - {author}. На экран консоли будут выведены все заметки указанного автора...");
-                Console.ReadKey();
-                return Notes.Where(n => n.Author == author).ToList();
-            }
-
-            if (fieldNote == diaryColumns.type)
-            {
-                Console.Write("Введите категорию заметки:");
-                string type = Console.ReadLine();
-
-                Console.WriteLine($"Введена категория - {type}. На экран консоли будут выведены все заметки с указанной категорией...");
-                Console.ReadKey();
-                return Notes.Where(n => n.Type == type).ToList();
-            }
-
-            return Notes;
-
+                    default:
+                        inputCorrect = true;
+                        result = inputByUser;
+                        break;
+                    }
+            } while (!inputCorrect);
+            return result;
         }
-        
 
         #endregion
 
-
-
-
-        #region del methods
-
+        #region add/del methods
+               
         /// <summary>
-        /// Проверка не превышает ли указанный номер заметки счетчик количества заметок
+        /// Метод добавления нового объекта "Заметка" в список объектов структуры заметка
         /// </summary>
-        /// <param name="numberNote">Номер заметки</param>
-        /// <returns></returns>
-        public bool CheckNumberNote(int numberNote)
+        /// <param name="newNote">Добавляемый объект структуры "Заметка"</param>
+        public void AddNote(Note newNote)
         {
-            if (numberNote <= CountNotes) return true;
-            else return false;
+            try
+            {
+                Notes.Add(newNote);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Исключение: {ex.Message}");
+            }
         }
 
-
         /// <summary>
-        /// Удаление заметки по номеру
+        /// Метод удаления заметок по пользовательским настройкам
         /// </summary>
-        /// <param name="numberNote">номер заметки</param>
-        public void DeleteNoteByNumber(int numberNote)
-        {
-            if (!CheckNumberNote(numberNote))
+        /// <param name="diary"></param>
+        /// <returns>Возвращает список заметок оставшихся после удаления</returns>
+        public void DeleteNotes(DiaryTerminator diaryTerminator)
             {
-                Console.WriteLine($"Заявки с номером {numberNote} не существует. Пожалуйста попробуйте снова...");
+            
+            List<Note> changedNotes = new List<Note>();
 
-                Console.ReadKey();
+            switch(diaryTerminator.Column)
+                {
+                case diaryColumns.number:
+                    int digit = (int)diaryTerminator.Value;
+                    changedNotes = Notes.Where(n => n.Number != digit).ToList();
+                    break;
+                case diaryColumns.date:
+                    DateTime date = (DateTime)diaryTerminator.Value;
+                    changedNotes = Notes.Where(n => n.Date != date).ToList();
+                    break;
+                case diaryColumns.author:
+                    string author = (string)diaryTerminator.Value;
+                    changedNotes = Notes.Where(n => n.Author != author).ToList();
+                    break;
+                    case diaryColumns.type:
+                    string type = (string)diaryTerminator.Value;
+                    changedNotes = Notes.Where(n => n.Type != type).ToList(); 
+                    break;
+                }
 
-                return;
-            }
+            Notes = changedNotes;
 
-            Notes.RemoveAt(numberNote - 1); //Удаление заметки из списка заметок
-
-            for (int i = numberNote - 1; i < CountNotes; i++)   //цикл изменения номеров заметок находящихся после удаленной
-            {
-                Notes[i].ChangeNumber();
-            }
-
-            Console.WriteLine("Заметка успешно удалена. Обратите внимание, что нумерация заметок изменилась!");
-
-            Console.ReadKey();
+            ChangeNumber();
         }
+        
 
         #endregion
 

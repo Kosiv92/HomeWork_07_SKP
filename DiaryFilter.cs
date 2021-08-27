@@ -20,32 +20,34 @@ namespace HomeWork_07_SKP
     public class DiaryFilter
     {
         public diaryColumns Column { get; set; }
-        public string Value { get; set; }
+        public object Value { get; set; }
 
-        public bool filterOn
+        public bool FilterEnabled { private set; get; }
+        
+        /// <summary>
+        /// Метод выбора настроек фильтрации пользователем
+        /// </summary>
+        public void turnFilter()
         {
-            get { return filterOn;}
-            set
-            {
                 Console.Clear();
+                bool filterEnabled = false;
                 bool methodWork = true;
                 do
                 {
-
-                    Console.WriteLine("Включить фильтр?:\n1-Да\n2-Нет");
+                Console.WriteLine("Включить фильтр?:\n1-Да\n2-Нет");
                     var chooseUser = Console.ReadKey();
                     switch (chooseUser.Key)
                     {
                         case ConsoleKey.D1:
                             Console.WriteLine("Вы включили фильтрацию заметок");
                             Console.ReadKey();
-                            value = true;
+                            filterEnabled = true;
                             methodWork = false;
                             break;
                         case ConsoleKey.D2:
                             Console.WriteLine("Вы выключили фильтрацию заметок");
                             Console.ReadKey();
-                            value = false;
+                            filterEnabled = false;
                             methodWork = false;
                             break;
                         default:
@@ -56,78 +58,11 @@ namespace HomeWork_07_SKP
                     }
 
                 }while (methodWork);
-            }
-        }
-
-        public string GetValue()
-        {
-            bool inputCorrect = false;
             
-            switch (Column)
-            {
-                case diaryColumns.number:
-                    while (!inputCorrect)
-                    {
-                        int digit = 0;
-                        Console.Write("Введите номер заметки:");
-                        string inputByUser = Console.ReadLine();
-                        inputCorrect = Int32.TryParse(inputByUser, out digit);
-                        if (!inputCorrect)
-                        {
-                            Console.WriteLine("Некорректный ввод. Необходимо ввести целое число. Попробуйте снова.");
-                            Console.ReadKey();
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Введен номер - {digit}. На экран консоли будут выведена заметка с указанным номером...");
-                            Console.ReadKey();
-                            return inputByUser;
-                        }
-                    }
-                    break;
+            FilterEnabled = filterEnabled;
 
-                case diaryColumns.date:
-                    DateTime date = DateTime.MinValue;
-                    while (!inputCorrect)
-                    {
-                        Console.Write("Введите дату заметки:");
-                        string inputByUser = Console.ReadLine();
-                        inputCorrect = DateTime.TryParse(inputByUser, out date);
-                        if (!inputCorrect) 
-                        {
-                            Console.WriteLine("Некорректный ввод. Необходимо ввести дату в формате - ДД.ММ.ГГГГ. Попробуйте снова.");
-                            Console.ReadKey();
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Введена дата - {date}. На экран консоли будут выведены все заметка с указанной датой...");
-                            Console.ReadKey();
-                            return inputByUser;
-                        }
-                    }
-                    break;
-
-                case diaryColumns.author:
-                    Console.Write("Введите автора заметки:");
-                    string inputAuthor = Console.ReadLine();
-                    Console.WriteLine($"Введен автор - {inputAuthor}. На экран консоли будут выведены все заметки указанного автора...");
-                    Console.ReadKey();
-                    return inputAuthor;
-                    break;
-
-                case diaryColumns.type:
-                    Console.Write("Введите категорию заметки:");
-                    string inputType = Console.ReadLine();
-                    Console.WriteLine($"Введена категория - {inputType}. На экран консоли будут выведены все заметки с указанной категорией...");
-                    Console.ReadKey();
-                    return inputType;
-                    break;
-            }
-
-            return null;
         }
-
-        public void DoMagic() { }
+                
     }
 
     public class DiarySort
@@ -154,6 +89,8 @@ namespace HomeWork_07_SKP
         public DiaryRequest()
         {
             Sort = new DiarySort();
+
+            Filter = new DiaryFilter();
         }
 
         /// <summary>
@@ -188,20 +125,102 @@ namespace HomeWork_07_SKP
                         break;
                 }
             } while (methodWork);
+
+            Sort.Column = Diary.ChooseDiaryColumns();
         }
 
         public void ChangeFilter()
         {
             
-            if (Filter.filterOn)
+            if (Filter.FilterEnabled)
             {
                 Filter.Column = Diary.ChooseDiaryColumns();
-                Filter.Value = Filter.GetValue();
+                Filter.Value = Diary.GetValue(Filter.Column);
             }
             
         }
 
+    }
 
+    public class DatesPeriod
+        {
+        public DateTime StartDate{ get; private set; }
+
+        public DateTime EndDate{ get; private set; }
+
+        /// <summary>
+        /// Конструктор объекта с установкой значений свойств пользователем
+        /// </summary>
+        public DatesPeriod()
+        { 
+            DateTime startDate;
+            DateTime endDate;
+            
+            Console.WriteLine("Введите период создания заметок");
+            bool correctInput = false;
+
+            do
+            {
+                do
+                {
+                Console.WriteLine("Введите начальную дату в формате - ДД.ММ.ГГГГ: ");
+                string inputByUser = Console.ReadLine();
+                correctInput = DateTime.TryParse(inputByUser, out startDate);
+                if(!correctInput)
+                    {
+                    Console.WriteLine("Некорректный ввод. Попробуйте снова...");
+                    Console.ReadKey();
+                    continue;
+                    }
+
+                } while (!correctInput);
+
+            correctInput = false;
+            do
+                {
+            Console.WriteLine("Введите конечную дату в формате - ДД.ММ.ГГГГ: ");
+                string inputByUser = Console.ReadLine();
+                correctInput = DateTime.TryParse(inputByUser, out endDate);
+                if(!correctInput)
+                    {
+                    Console.WriteLine("Некорректный ввод. Попробуйте снова...");
+                    Console.ReadKey();
+                    continue;
+                    }
+                } while (!correctInput);
+
+                if(endDate < startDate)
+                { 
+                    correctInput = false;
+                    Console.WriteLine("Конечная дата не может быть раньше начальной. Повторите ввод начальной и конечной даты");
+                    Console.ReadKey();                    
+                    }
+
+
+            }while(!correctInput);
+            
+            StartDate = startDate;
+
+            EndDate = endDate;
+
+        }
+
+        }
+
+    class DiaryTerminator
+    {
+        public diaryColumns Column { get; set; }
+        public object Value { get; set; }
+
+        public DiaryTerminator(Diary diary)
+            {
+            Column = Diary.ChooseDiaryColumns();
+
+            Value = Diary.GetValue(Column);       
+                        
+            }
+
+        
     }
 
     public interface IPaginationRequest
@@ -215,4 +234,5 @@ namespace HomeWork_07_SKP
         /// </summary>
         int CurentPage { get; set; }
     }
+
 }

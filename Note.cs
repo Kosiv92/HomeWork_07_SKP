@@ -31,12 +31,12 @@ namespace HomeWork_07_SKP
         /// Содержимое заметки
         /// </summary>
         public string Content { get; set; }
-        public string Type { get; set; }
-
+        
         /// <summary>
         /// Категория заметки
-        /// </summary>et; set; }
-
+        /// </summary>
+        public string Type { get; set; }
+        
         /// <summary>
         /// Конструктор для структуры Заметка
         /// </summary>
@@ -57,7 +57,7 @@ namespace HomeWork_07_SKP
 
             Type = type;
         }
-
+        
         /// <summary>
         /// Добавление новой заметки
         /// </summary>
@@ -106,15 +106,11 @@ namespace HomeWork_07_SKP
 
             return newNote;
         }
-
-        /// <summary>
-        /// Изменение номера заметки после удаления предшествующей заметки в общем списке
-        /// </summary>
-        public void ChangeNumber()
+          
+        public void ChangeNumberOfNote(Note note, int index)
         {
-            Number--;   //уменьшение номера заметки на единицу
+            note.Number = index + 1;
         }
-
     }
 
 

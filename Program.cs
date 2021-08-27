@@ -20,27 +20,15 @@ namespace HomeWork_07_SKP
 
             myDiary.SetPath(diaryPath);
 
-            ShowMenu(myDiary);
-            
-            //myDiary.LoadNotes();    //загрузка заметок из файла
+            ChooseKindOfLoad(myDiary);
 
-            //var CurrentNote = new Note();
-
-            //CurrentNote.Add(myDiary.CountNotes);
-            
-            //myDiary.AddNote(CurrentNote);
-
-
-            //var notes = new List<Note>(); //объявление списка объектов (дневников)
-
-            //string pathForDiary = GetDiaryPath(notes); //получение пути к файлу-ежедневнику от пользователя
-
-            //ShowMenu(notes, pathForDiary);    //Переход в меню
+            ShowMenu(myDiary);                       
 
         }
+             
 
         /// <summary>
-        /// Ds
+        /// Основное меню программы
         /// </summary>
         /// <param name="notes"></param>
         static void ShowMenu(Diary myDiary)
@@ -48,9 +36,8 @@ namespace HomeWork_07_SKP
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("Выберите необходимое действие:\n1 - Добавить заметку\n2 - Вывести все заметки на экран\n3 - Удалить заметку по номеру\n4 - Закрыть приложение и сохранить все заметки в файл");
-                ConsoleKeyInfo buttonPressed; //нажимаемая пользователем клавиша
-                buttonPressed = Console.ReadKey();
+                Console.WriteLine("Выберите необходимое действие:\n1 - Добавить заметку\n2 - Вывести все заметки на экран\n3 - Редактировать заметку\n4 - Удалить заметку\n5 - Закрыть приложение и сохранить все заметки в файл");
+                ConsoleKeyInfo buttonPressed = Console.ReadKey();; 
                 switch (buttonPressed.KeyChar)
                 {
                     case '1':   //добавление заметки
@@ -61,25 +48,25 @@ namespace HomeWork_07_SKP
 
                         break;
                     
-                    case '2':   //Вывод всех заметок на экран консоли
+                    case '2':   //Вывод заметок на экран консоли
                         myDiary.ChooseShowMode();
                         break;
 
-                    case '3':   // удаление заметки по номеру
+                        case '3':   //редактирование по номеру
 
-                        Console.Write("Выберите поле по которому будут найдены все заметки для удаления: ");
 
-                        myDiary.ChooseDiaryColumns();
 
-                        Console.Write("Введите номер заметки, которую необходимо удалить: ");
+                            break;
 
-                        int numerNote = Convert.ToInt32(Console.ReadLine());
+                    case '4':   // удаление заметки по номеру
 
-                        myDiary.DeleteNoteByNumber(numerNote);
+                       DiaryTerminator diaryTerminator = new DiaryTerminator(myDiary);
+
+                        myDiary.DeleteNotes(diaryTerminator);
 
                         break;
 
-                    case '4':   //закрытие приложения (с записью всех заметок в файл)
+                    case '5':   //закрытие приложения (с записью всех заметок в файл)
                         myDiary.UploadNotes();
 
                         Environment.Exit(0);
@@ -87,6 +74,37 @@ namespace HomeWork_07_SKP
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Выбор режима загрузки заметок из файла
+        /// </summary>
+        /// <param name="myDiary"></param>
+        static void ChooseKindOfLoad(Diary myDiary)
+        {
+            bool methodWork = true;
+            do
+            {
+                Console.Clear();
+                Console.WriteLine("Выберите режим загрузки заметок из файла:\n1 - Обычный\n2 - Загрузка по диапозону дат");
+                ConsoleKeyInfo buttonPressed = Console.ReadKey();; 
+                switch (buttonPressed.Key)
+                {
+                    case ConsoleKey.D1:
+                        myDiary.LoadNotes();
+                        methodWork = false;
+                        break;
+                        case ConsoleKey.D2:
+                        myDiary.LoadNotesByDates();
+                        methodWork = false;
+                        break;
+                        default:
+                        Console.WriteLine("Вы нажали неизвестную кнопку. Попробуйте снова...");
+                        Console.ReadKey();                        
+                        break;
+                }
+            }while(methodWork);
+
         }
 
         //static void ChooseNotesForDelete();
@@ -121,72 +139,7 @@ namespace HomeWork_07_SKP
         //        }
         //    }
         //}
-
-        /// <summary>
-        /// Метод загрузки структуры в файл
-        /// </summary>
-        /// <param name="notes">Список объектов структуры</param>
-        /// <param name="pathForDiary">Путь к файлу для записи</param>
-        //static void UploadToFile(List<Note> notes, string pathForDiary)
-        //{
-
-        //    using (StreamWriter writeToFile = new StreamWriter(pathForDiary, false, Encoding.UTF32))
-        //    {
-        //        FileInfo infoDiary = new FileInfo(pathForDiary);
-        //        if(!infoDiary.Exists) File.Create(pathForDiary);    //проверка существования файла по указанному пути
-        //            foreach (var note in notes)
-        //        {
-
-        //            writeToFile.Write(note.Number + ";"  + note.Date + ";" + note.Author + ";" + note.Content + ";" + note.Type);
-        //            writeToFile.WriteLine();
-        //        }
-
-        //    }
-        //}
-
-        /// <summary>
-        /// Указание пути к файлу со списокм ежедневников
-        /// </summary>
-        /// <returns></returns>
-        //static string GetDiaryPath(List<Note> notes)
-        //{
-        //    Console.WriteLine(
-        //        "Перед началом работы укажите директорию, где находится или где необходимо создать файл с ежедневником\nФайл должен называться - \"Diary.csv\"\n" +
-        //        "Вам необходимо вписать путь до директории с файлом в формате - \"D:\\MyFiles\" В случае если файл отсутствует по указанному пути он будет создан\n");
-        //    string diaryPath;
-
-        //    while (true)
-        //    {
-        //        diaryPath = Console.ReadLine();
-        //        try
-        //        {
-        //            DirectoryInfo infoAboutDirectoryOfDiary = new DirectoryInfo(diaryPath);   //проверка на пустую строку
-        //            diaryPath += "\\Diary.csv";
-        //            FileInfo infoAboutDiary = new FileInfo(diaryPath);
-        //            if (infoAboutDiary.Exists)
-        //            {
-        //                Console.WriteLine(
-        //                    $"Обнаружен существующий файл-ежедневник для хранения заметок - {diaryPath}");
-        //                LoadFromFile(notes, diaryPath);
-        //                Console.ReadKey();
-        //                return diaryPath;
-        //            }
-        //            else
-        //            {
-        //                //File.Create(diaryPath);
-        //                Console.WriteLine($"Файл не обнаружен. Будет создан новый файл-ежедневник для хранения заметок - {diaryPath}");
-        //                Console.ReadKey();
-        //                return diaryPath;
-        //            }
-        //        }
-        //        catch
-        //        {
-        //            Console.WriteLine(
-        //                "Вы указали неверный путь. Проверьте правильности формата (пример - \"D:\\MyFiles\") и попробуйте снова");
-        //        }
-        //    }
-        //}
-
+                
 
         //static void DeleteNotes(List<Note> notes)
         //{
@@ -216,46 +169,6 @@ namespace HomeWork_07_SKP
 
 
         //}
-
-        //static int ChooseDeletedField()
-        //{
-        //    Console.Clear();
-        //    Console.WriteLine("Укажите по какому полю вы хотите выбрать заметки для удаления:\n1 - Номер заметки\n2 - Дата заметки\n3 - Автор заметки\n4 - Содержимое заметкиn\n5 - Категория заметки");
-        //    int fieldNum = 5;   //номер поля, которое необходимо удалить
-        //    ConsoleKeyInfo buttonPressed; //нажимаемая пользователем клавиша
-        //    while (fieldNum == 5)
-        //    {
-        //        buttonPressed = Console.ReadKey();
-        //        Console.WriteLine();
-        //        switch (buttonPressed.KeyChar)
-        //        {
-        //            case '1':
-        //                fieldNum = 0;
-        //                break;
-        //            case '2':
-        //                fieldNum = 1;
-        //                break;
-        //            case '3':
-        //                fieldNum = 2;
-        //                break;
-        //            case '4':
-        //                fieldNum = 3;
-        //                break;
-        //            case '5':
-        //                fieldNum = 4;
-        //                break;
-        //            default:
-        //                Console.WriteLine("Вы нажали некорректную клавишу. Попробуйте снова");
-        //                break;
-        //        }
-
-        //    }
-
-        //    return fieldNum;
-        //}
-
-
-
-
+        
     }
 }
