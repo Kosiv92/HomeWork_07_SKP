@@ -6,4 +6,12 @@
     <StartupObject>HomeWork_07_SKP.Program</StartupObject>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\HomeWork_07_SKP.data\HomeWork_07_SKP.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="NewFolder1\" />
+  </ItemGroup>
+
 </Project>
